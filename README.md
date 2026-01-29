@@ -22,7 +22,14 @@ npm install
 Tạo file `.env.local` tại thư mục gốc của dự án và điền các thông tin từ Supabase của bạn:
 
 ```bash
+# macOS / Linux
 cp .env.example .env.local
+
+# Windows PowerShell
+Copy-Item -Path .env.example -Destination .env.local
+
+# Windows Command Prompt
+copy .env.example .env.local
 ```
 
 Nội dung file `.env.local`:

@@ -15,6 +15,8 @@ import { DeleteProductButton } from "./delete-button";
 
 export default async function ProductsPage() {
   const supabase = await createClient();
+  
+  // Lấy dữ liệu (đã bao gồm barcode vì select *)
   const { data: products } = await supabase
     .from("products")
     .select("*")
@@ -38,6 +40,10 @@ export default async function ProductsPage() {
             <TableRow>
               <TableHead>Image</TableHead>
               <TableHead>Name</TableHead>
+              
+              {/* 👇 1. THÊM TIÊU ĐỀ CỘT BARCODE Ở ĐÂY */}
+              <TableHead>Barcode</TableHead>
+              
               <TableHead>Price</TableHead>
               <TableHead>Stock</TableHead>
               <TableHead className="text-right">Actions</TableHead>
@@ -47,14 +53,25 @@ export default async function ProductsPage() {
             {products?.map((product) => (
               <TableRow key={product.id}>
                 <TableCell className="">
-                  <img
-                    src={product.image_url}
-                    alt={product.name}
-                    width={50}
-                    height={50}
-                  />
+                  {product.image_url && (
+                    <img
+                      src={product.image_url}
+                      alt={product.name}
+                      width={50}
+                      height={50}
+                      className="rounded object-cover aspect-square"
+                    />
+                  )}
                 </TableCell>
                 <TableCell className="font-medium">{product.name}</TableCell>
+                
+                {/* 👇 2. THÊM DỮ LIỆU BARCODE Ở ĐÂY */}
+                <TableCell>
+                  <span className="font-mono text-xs bg-slate-100 px-2 py-1 rounded border">
+                    {product.barcode || "---"}
+                  </span>
+                </TableCell>
+
                 <TableCell>${product.price}</TableCell>
                 <TableCell>{product.stock_quantity}</TableCell>
                 <TableCell className="text-right space-x-2">
@@ -66,10 +83,10 @@ export default async function ProductsPage() {
                   <DeleteProductButton id={product.id} />
                 </TableCell>
               </TableRow>
-            ))}
-            {!products?.length && (
+            ))}{!products?.length && (
               <TableRow>
-                <TableCell colSpan={4} className="h-24 text-center">
+                {/* 👇 Sửa colSpan thành 6 cho đủ cột */}
+                <TableCell colSpan={6} className="h-24 text-center">
                   No products found.
                 </TableCell>
               </TableRow>

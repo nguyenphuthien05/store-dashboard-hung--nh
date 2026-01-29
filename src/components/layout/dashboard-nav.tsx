@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LayoutDashboard, Package, ShoppingCart, Users } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Users, ScanBarcode } from "lucide-react"; // Đã thêm ScanBarcode vào đây
 
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
@@ -37,6 +37,16 @@ export function DashboardNav({
         <ShoppingCart className="mr-2 h-4 w-4" />
         Orders
       </Link>
+
+      {/* 👇 NÚT MỚI THÊM VÀO ĐÂY 👇 */}
+      <Link
+        href="/scan"
+        className={cn(buttonVariants({ variant: "ghost" }), "justify-start font-bold text-blue-600")}
+      >
+        <ScanBarcode className="mr-2 h-4 w-4" />
+        Bán Hàng
+      </Link>
+      
     </nav>
   );
 }
