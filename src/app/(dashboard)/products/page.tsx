@@ -13,14 +13,28 @@ import {
 import { createClient } from "@/utils/supabase/server";
 import { DeleteProductButton } from "./delete-button";
 
+// 👇 1. THÊM DÒNG NÀY: Bắt buộc tải dữ liệu mới nhất (chống lưu cache)
+export const dynamic = "force-dynamic";
+
 export default async function ProductsPage() {
   const supabase = await createClient();
   
-  // Lấy dữ liệu (đã bao gồm barcode vì select *)
-  const { data: products } = await supabase
+  // 👇 2. SỬA ĐOẠN NÀY: Sắp xếp theo 'id' thay vì 'created_at' để tránh lỗi nếu thiếu cột
+  const { data: products, error } = await supabase
     .from("products")
     .select("*")
-    .order("created_at", { ascending: false });
+    .order("id", { ascending: false });
+
+  // 👇 3. THÊM ĐOẠN NÀY: Nếu lỗi thì báo ra màn hình thay vì sập web
+  if (error) {
+    console.error("Lỗi Supabase:", error);
+    return (
+      <div className="p-8 text-red-500">
+        Lỗi tải dữ liệu: {error.message} <br/>
+        (Hãy kiểm tra lại Console hoặc Database)
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 space-y-4 p-8 pt-6">
@@ -40,10 +54,7 @@ export default async function ProductsPage() {
             <TableRow>
               <TableHead>Image</TableHead>
               <TableHead>Name</TableHead>
-              
-              {/* 👇 1. THÊM TIÊU ĐỀ CỘT BARCODE Ở ĐÂY */}
               <TableHead>Barcode</TableHead>
-              
               <TableHead>Price</TableHead>
               <TableHead>Stock</TableHead>
               <TableHead className="text-right">Actions</TableHead>
@@ -53,19 +64,23 @@ export default async function ProductsPage() {
             {products?.map((product) => (
               <TableRow key={product.id}>
                 <TableCell className="">
-                  {product.image_url && (
+                  {product.image_url ? (
                     <img
                       src={product.image_url}
                       alt={product.name}
                       width={50}
                       height={50}
-                      className="rounded object-cover aspect-square"
+                      className="rounded object-cover aspect-square border"
                     />
+                  ) : (
+                     // Hiển thị khung xám nếu không có ảnh
+                    <div className="w-[50px] h-[50px] bg-slate-100 rounded border flex items-center justify-center text-[10px] text-slate-400">
+                        No IMG
+                    </div>
                   )}
                 </TableCell>
                 <TableCell className="font-medium">{product.name}</TableCell>
                 
-                {/* 👇 2. THÊM DỮ LIỆU BARCODE Ở ĐÂY */}
                 <TableCell>
                   <span className="font-mono text-xs bg-slate-100 px-2 py-1 rounded border">
                     {product.barcode || "---"}
@@ -73,8 +88,15 @@ export default async function ProductsPage() {
                 </TableCell>
 
                 <TableCell>${product.price}</TableCell>
-                <TableCell>{product.stock_quantity}</TableCell>
-                <TableCell className="text-right space-x-2">
+                
+                <TableCell>
+                    {/* Tô màu nếu sắp hết hàng */}
+                    <span className={`px-2 py-1 rounded text-xs ${product.stock_quantity > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                        {product.stock_quantity}
+                    </span>
+                </TableCell>
+                
+                <TableCell className="text-right space-x-2 flex justify-end">
                   <Link href={`/products/${product.id}`}>
                     <Button variant="outline" size="sm">
                       Edit
@@ -83,9 +105,11 @@ export default async function ProductsPage() {
                   <DeleteProductButton id={product.id} />
                 </TableCell>
               </TableRow>
-            ))}{!products?.length && (
+            ))}
+            
+            {/* Hiển thị khi danh sách trống */}
+            {(!products || products.length === 0) && (
               <TableRow>
-                {/* 👇 Sửa colSpan thành 6 cho đủ cột */}
                 <TableCell colSpan={6} className="h-24 text-center">
                   No products found.
                 </TableCell>
